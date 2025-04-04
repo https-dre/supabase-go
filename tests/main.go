@@ -4,7 +4,7 @@ import (
 	"log"
 	"github.com/joho/godotenv"
 	"os"
-	"github.com/https-dre/supabase-go"
+	"github.com/https-dre/supabase-go/supabase_storage"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 	supabaseKey := os.Getenv("SUPABASE_ANO_KEY")
 	supabaseServiceRole := os.Getenv("SUPABASE_SERVICE_ROLE")
 
-	supabaseClient := supabase_go.NewSupabaseCtx(supabaseURL, supabaseKey, supabaseServiceRole)
+	supabaseClient := storage.NewClient(supabaseURL, supabaseKey, supabaseServiceRole)
 	bucket := "docs-system"
 	filename := "example2.txt"
 	file := []byte("This is an example file.")
