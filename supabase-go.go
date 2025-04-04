@@ -3,11 +3,10 @@ package supabase_go
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
-	"net/http/httputil"
 	"net/textproto"
 )
 
@@ -62,15 +61,11 @@ func (s *supabaseContext) UploadFile(bucket string, filename string, content []b
 		return err
 	}
 	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		log.Println("Response body:", string(body))
 		return fmt.Errorf("error uploading file: %s", resp.Status)
 	}
-
-	dump, _ := httputil.DumpRequest(req, true)
-	log.Println("Request:", string(dump))
 
 	return nil
 }
