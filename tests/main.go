@@ -18,15 +18,17 @@ func main() {
 	supabaseServiceRole := os.Getenv("SUPABASE_SERVICE_ROLE")
 
 	supabaseClient := storage.NewClient(supabaseURL, supabaseKey, supabaseServiceRole)
+
 	bucket := "docs-system"
-	filename := "example2.txt"
+	filename := "example5.txt"
 	file := []byte("This is an example file.")
 	mimetype := "text/plain"
-	err = supabaseClient.UploadFile(bucket, filename, file, mimetype)
-	if err != nil {
-		log.Println(err)
-	} else {
-		log.Println("File uploaded successfully")
-	}
+
+	resp := supabaseClient.UploadFile(bucket, filename, file, mimetype)
+
+	log.Println("Supabase Status:", resp.Status)
+	log.Println("Supabase Error:", resp.Err)
+	log.Println("Supabase Bucket Name:", resp.BucketName)
+	log.Println("Supabase Response Body:", resp.ResponseBody)
 }
 
