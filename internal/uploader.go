@@ -8,9 +8,11 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
+
+	"github.com/https-dre/supabase-go/models"
 )
 
-func UploadFile(url, service_role, bucket, filename, mimetype string, content []byte) error {
+func UploadFile(url, service_role, bucket, filename, mimetype string, content []byte) models.StorageStatus {
 	var requestBody bytes.Buffer
 	writer := multipart.NewWriter(&requestBody)
 
@@ -20,12 +22,16 @@ func UploadFile(url, service_role, bucket, filename, mimetype string, content []
 
 	part, err := writer.CreatePart(partHeader)
 	if err != nil {
-		return err
+		return models.StorageStatus{
+			Err: err,
+		}
 	}
 
 	_, err = part.Write(content)
 	if err != nil {
-		return err
+		return models.StorageStatus{
+			Err: err,
+		}
 	}
 
 	writer.Close()
@@ -34,7 +40,9 @@ func UploadFile(url, service_role, bucket, filename, mimetype string, content []
 	req, err := http.NewRequest("POST", uploadURL, &requestBody)
 	if err != nil {
 		log.Println("Error creating request:", err)
-		return err
+		return models.StorageStatus{
+			Err: err,
+		}
 	}
 
 	req.Header.Set("Authorization", "Bearer "+service_role)
@@ -42,15 +50,32 @@ func UploadFile(url, service_role, bucket, filename, mimetype string, content []
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
+
 	if err != nil {
-		return err
+		return models.StorageStatus{
+			Status: resp.Status,
+			Err: err,
+		}
 	}
+	
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
+
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		log.Println("Response body:", string(body))
-		return fmt.Errorf("error uploading file: %s", resp.Status)
+		msg := fmt.Errorf("error uploading file: %s", resp.Status)
+
+		return models.StorageStatus{
+			Status: resp.Status,
+			Err: msg,
+			ResponseBody: string(body),
+			BucketName: bucket,
+		}
 	}
 
-	return nil
+	return models.StorageStatus{
+		BucketName: bucket,
+		Status:     resp.Status,
+		Err:        nil,
+		ResponseBody: string(body),
+	}
 }
